@@ -3,6 +3,7 @@
 
 #include "MODULE_LuaOO.h"
 #include "LIBRARY_MySql.h"
+#include "CLASS_Mutex.h"
 #include <vector>
 
 class ConnectThread;
@@ -39,11 +40,14 @@ public:
   int abortAllQueries();
   int status();
 
-  MYSQL* sqlHandle();
+  MYSQL* lockHandle();
+  void unlockHandle();
+
   void setRunning(Query*);
 private:
   void checkQueries();
 
+  Mutex m_sqlMutex;
   MYSQL* m_sql;
   ConnectThread* m_connectionThread;
   std::vector<Query*> m_runningQueries;

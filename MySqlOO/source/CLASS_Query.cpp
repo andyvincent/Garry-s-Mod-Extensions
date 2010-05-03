@@ -9,7 +9,7 @@ Query::Query(Database* dbase, ILuaInterface* pLua)
 {
   m_options = OPTION_NAMED_FIELDS | OPTION_INTERPRET_DATA | OPTION_CACHE;
   m_status = QUERY_NOT_RUNNING;
-  m_queryThread = new QueryThread( m_database->sqlHandle() );
+  m_queryThread = new QueryThread( m_database );
 }
 
 Query::~Query(void)

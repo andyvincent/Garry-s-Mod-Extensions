@@ -1,12 +1,14 @@
 #include "CLASS_Database.h"
 #include "CLASS_ConnectThread.h"
 #include "CLASS_Query.h"
+#include "CLASS_MutexLocker.h"
 
 Database::Database(ILuaInterface* luaInterface)
   : LuaObjectBaseTemplate<Database>(luaInterface)
 {
+  MutexLocker lock(m_sqlMutex);
   m_sql = mysql_init(0);
-  m_connectionThread = new ConnectThread(m_sql);
+  m_connectionThread = new ConnectThread(this);
 }
 
 Database::~Database(void)
@@ -17,6 +19,7 @@ Database::~Database(void)
   delete m_connectionThread;
   m_connectionThread = 0;
 
+  MutexLocker lock(m_sqlMutex);
   mysql_close(m_sql);
   m_sql = 0;
 }
@@ -28,11 +31,6 @@ BEGIN_BINDING(Database)
 	BIND_FUNCTION( abortAllQueries )
 	BIND_FUNCTION( status )
 END_BINDING()
-
-MYSQL* Database::sqlHandle()
-{
-  return m_sql;
-}
 
 void Database::setRunning(Query* query)
 {
@@ -96,7 +94,9 @@ int Database::escape()
 	if (sEscapedQuery == 0)
 		return 0;
 
+  m_sqlMutex.lock();
 	mysql_real_escape_string(m_sql, sEscapedQuery, sQuery, (unsigned long)nQueryLength );
+  m_sqlMutex.unLock();
 
   m_luaInterface->Push( sEscapedQuery );
 
@@ -212,4 +212,15 @@ void Database::setClientFlag(unsigned int flag)
   if (m_connectionThread->isRunning())
     return;
   m_connectionThread->setClientFlag(flag);
+}
+
+MYSQL* Database::lockHandle()
+{
+  m_sqlMutex.lock();
+  return m_sql;
+}
+
+void Database::unlockHandle()
+{
+  m_sqlMutex.unLock();
 }

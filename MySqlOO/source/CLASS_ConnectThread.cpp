@@ -1,5 +1,6 @@
 #include "CLASS_ConnectThread.h"
 #include "CLASS_MutexLocker.h"
+#include "CLASS_Database.h"
 
 std::string safeStrToStr(const char* str)
 {
@@ -16,9 +17,9 @@ const char* stringOrNull(const std::string& str)
   return str.c_str();
 }
 
-ConnectThread::ConnectThread(MYSQL* sql)
+ConnectThread::ConnectThread(Database* dbase)
   : Thread()
-  , m_sql(sql)
+  , m_mysql(dbase)
   , m_clientFlag(0)
   , m_port(0)
 {
@@ -79,12 +80,15 @@ std::string ConnectThread::error()
 
 int ConnectThread::run()
 {
-	if (!mysql_real_connect(m_sql, stringOrNull(m_host), stringOrNull(m_user), stringOrNull(m_pass), stringOrNull(m_database), m_port, stringOrNull(m_unixSocket), m_clientFlag))
+  MYSQL* sql = m_mysql->lockHandle();
+	if (!mysql_real_connect(sql, stringOrNull(m_host), stringOrNull(m_user), stringOrNull(m_pass), stringOrNull(m_database), m_port, stringOrNull(m_unixSocket), m_clientFlag))
 	{
     MutexLocker dataLock(m_dataMutex);
 		m_success = false;
-    m_error = std::string( mysql_error(m_sql) );
+    m_error = std::string( mysql_error(sql) );
     postEvent( CONNECTION_FINISHED );
+
+    m_mysql->unlockHandle();
     return 0;
 	}
   else
@@ -93,6 +97,8 @@ int ConnectThread::run()
     m_success = true;
     m_error = "";
     postEvent( CONNECTION_FINISHED );
+
+    m_mysql->unlockHandle();
     return 0;
   }
 }

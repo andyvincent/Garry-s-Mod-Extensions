@@ -1,12 +1,13 @@
 #include "CLASS_QueryThread.h"
 #include "CLASS_MutexLocker.h"
 #include "CLASS_DataRow.h"
+#include "CLASS_Database.h"
 
 #include <sstream>
 
-QueryThread::QueryThread(MYSQL* sql)
+QueryThread::QueryThread(Database* dbase)
   : Thread()
-  , m_sql(sql)
+  , m_database( dbase )
   , m_affectedRows(0)
   , m_lastInsert(0)
 {
@@ -78,6 +79,8 @@ int QueryThread::run()
   // In otherwords: once we've started, we can't stop. So what we actually do is run the 
   // query in full, and just not post any events if this flag is set.
 
+  MYSQL* sql = 0;
+
   {
     MutexLocker lock(m_resultInfo);
     m_columns.clear();
@@ -92,36 +95,44 @@ int QueryThread::run()
     return 0;
   }
 
-	if (mysql_query(m_sql, m_query.c_str()) != 0)
+  sql = m_database->lockHandle();
+  if (mysql_query(sql, m_query.c_str()) != 0)
 	{
+
     MutexLocker lock(m_resultInfo);
     m_error = true;
-    m_errorText = mysql_error(m_sql);
+    m_errorText = mysql_error(sql);
     postEvent( QUERY_ERROR );
+
+    m_database->unlockHandle();
 		return 0;
 	}
 
-  MYSQL_RES* pResult = mysql_use_result(m_sql);
+  MYSQL_RES* pResult = mysql_use_result(sql);
   if (!pResult)
   {
     if (checkAbort())
+    {
+      m_database->unlockHandle();
       return 0;
+    }
 
-		if(mysql_errno(m_sql))
+		if(mysql_errno(sql))
 		{
       MutexLocker lock(m_resultInfo);
       m_error = true;
-      m_errorText = mysql_error(m_sql);
+      m_errorText = mysql_error(sql);
       postEvent( QUERY_ERROR );
 		}
 		else
 		{
       MutexLocker lock(m_resultInfo);
       m_error = false;
-      m_lastInsert = mysql_insert_id(m_sql);
-      m_affectedRows = mysql_affected_rows(m_sql);
+      m_lastInsert = mysql_insert_id(sql);
+      m_affectedRows = mysql_affected_rows(sql);
       postEvent( QUERY_SUCCESS_NO_DATA );
 		}
+    m_database->unlockHandle();
 		return 0;
   }
 
@@ -185,11 +196,11 @@ int QueryThread::run()
     CurrentRow = mysql_fetch_row(pResult);
   }
 
-	if(mysql_errno(m_sql))
+	if(mysql_errno(sql))
 	{
     MutexLocker lock(m_resultInfo);
     m_error = true;
-    m_errorText = mysql_error(m_sql);
+    m_errorText = mysql_error(sql);
     if (!checkAbort())
       postEvent( QUERY_ERROR );
     else
@@ -202,8 +213,8 @@ int QueryThread::run()
 	{
     MutexLocker lock(m_resultInfo);
     m_error = false;
-    m_lastInsert = mysql_insert_id(m_sql);
-    m_affectedRows = mysql_affected_rows(m_sql);
+    m_lastInsert = mysql_insert_id(sql);
+    m_affectedRows = mysql_affected_rows(sql);
     if (!checkAbort())
       postEvent( QUERY_SUCCESS );
     else
@@ -212,6 +223,7 @@ int QueryThread::run()
       m_abort = false;
     }
 	}
+  m_database->unlockHandle();
 
 	mysql_free_result(pResult);
 

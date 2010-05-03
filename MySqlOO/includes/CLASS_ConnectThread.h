@@ -3,9 +3,9 @@
 
 #include "CLASS_Thread.h"
 #include "CLASS_Mutex.h"
-#include "LIBRARY_MySql.h"
-
 #include <string>
+
+class Database;
 
 class ConnectThread :
   public Thread
@@ -14,7 +14,7 @@ public:
 
   enum { CONNECTION_FINISHED = 0 };
 
-  ConnectThread(MYSQL* sql);
+  ConnectThread(Database* dbase);
   virtual ~ConnectThread(void);
 
   void setHost(const char* host);
@@ -29,7 +29,7 @@ public:
 
   virtual int run();
 private:
-  MYSQL* m_sql;
+  Database* m_mysql;
 
   std::string m_error;
   bool m_success;

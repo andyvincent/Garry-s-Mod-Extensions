@@ -5,6 +5,7 @@
 #include <string>
 
 class DataRow;
+class Database;
 
 class QueryThread :
   public Thread
@@ -26,7 +27,7 @@ public:
     STRING,
   };
 
-  QueryThread(MYSQL* sql);
+  QueryThread(Database* dbase);
   virtual ~QueryThread(void);
 
   void setQuery(const char* query);
@@ -41,8 +42,8 @@ public:
 
   virtual int run();
 private:
-  MYSQL* m_sql;
   std::string m_query;
+  Database* m_database;
 
   Mutex m_resultInfo;
   bool m_error;
