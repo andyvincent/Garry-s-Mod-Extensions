@@ -7,7 +7,12 @@ DWORD WINAPI Thread::ThreadProc(void* p)
   Thread* thread = reinterpret_cast<Thread*>(p);
   if (!thread)
     return 0;
-  int result = thread->run();
+  int result = 0;
+  if (thread->init())
+  {
+    result = thread->run();
+    thread->exit();
+  }
   thread->done();
   return result;
 }
@@ -107,4 +112,13 @@ bool Thread::getEvent(EventData& event)
   event = *m_events.begin();
   m_events.erase( m_events.begin() );
   return true;
+}
+
+bool Thread::init()
+{
+  return true;
+}
+
+void Thread::exit()
+{
 }

@@ -42,9 +42,19 @@ public:
   virtual void wait();
   
   /*!
+    \brief Called before the thread is run
+  */
+  virtual bool init();
+
+  /*!
     \brief Activity to perform
   */
   virtual int run() = 0;
+
+  /*!
+    \brief Called after the thread has run
+  */
+  virtual void exit();
 
   /*!
     \brief Check if the thread is still running
