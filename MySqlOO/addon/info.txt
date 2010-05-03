@@ -1,0 +1,15 @@
+"AddonInfo"
+{
+	"name"		"MySql Interface"
+	"version"	"1.0"
+	"up_date"	"May 2010"
+	"author_name"	"Andy Vincent"
+	"author_email"	"andy.i.vincent@gmail.com"
+	"author_url"	"http://www.brownlittlehandfootman.com/"
+	
+	"info"		""
+	
+	"GCFRequires"
+	{
+	}
+}
