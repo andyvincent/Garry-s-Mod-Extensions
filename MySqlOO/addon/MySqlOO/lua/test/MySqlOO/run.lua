@@ -13,7 +13,7 @@ end
 
 function testSuccess()
   print(" *** SUCCESS ***")
-  nextTest()
+  timer.Simple(0, nextTest)
 end
 
 function nextTest()
@@ -179,4 +179,39 @@ addTest("TableQuery - Abort", function()
   end
   selectQuery:abort() // ensure the query aborts straight away
   selectQuery:start()
+end )
+
+queriesComplete = 0
+
+addTest("TableQuery - 2 at once", function()
+  queriesComplete = 0
+  
+  function onSuccess()
+    queriesComplete = queriesComplete + 1
+    if (queriesComplete == 2) then
+      testSuccess(error)
+     end  
+  end
+  
+  local selectQuery1 = databaseObject:query("SELECT ID, Name, Cost FROM test")
+  selectQuery1.onSuccess = onSuccess
+  function selectQuery1.onData(self, data)
+    print( "selectQuery1", data.ID, data.Name, data.Cost )
+  end
+  function selectQuery1.onError(self, error)
+    testFailed(error)
+  end
+
+  local selectQuery2 = databaseObject:query("SELECT ID, Name, Cost FROM test")
+  selectQuery2.onSuccess = onSuccess
+  function selectQuery2.onData(self, data)
+    print( "selectQuery2", data.ID, data.Name, data.Cost )
+  end
+  function selectQuery2.onError(self, error)
+    testFailed(error)
+  end
+  print("selectQuery2 started")
+  selectQuery2:start()
+  print("selectQuery1 started")
+  selectQuery1:start()
 end )
