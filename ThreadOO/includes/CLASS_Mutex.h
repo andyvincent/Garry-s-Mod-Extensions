@@ -10,6 +10,8 @@ class Mutex
 {
 #ifdef WIN32
   CRITICAL_SECTION m_mutex;
+#elif LINUX
+  pthread_mutex_t m_mutex;
 #else
 #error Unhandled Platform!
 #endif

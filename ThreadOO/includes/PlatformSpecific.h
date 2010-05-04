@@ -4,6 +4,8 @@
 #ifdef WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+#elif LINUX
+#include <pthread.h>
 #else
 #error Unhandled Platform!
 #endif

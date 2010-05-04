@@ -10,6 +10,8 @@ class Event
 {
 #ifdef WIN32
   HANDLE m_event;
+#elif LINUX
+  pthread_mutex_t m_mutex;
 #else
 #error Unhandled Platform!
 #endif

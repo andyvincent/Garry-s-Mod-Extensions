@@ -89,7 +89,11 @@ private:
   /*!
     \brief Thread entry point (windows)
   */
-  static DWORD WINAPI ThreadProc(void* p);
+  static DWORD WINAPI threadProc(void* p);
+#elif LINUX
+  pthread_t m_thread;
+
+  static void* threadProc(void* p);
 #else
 #error Unhandled Platform!
 #endif

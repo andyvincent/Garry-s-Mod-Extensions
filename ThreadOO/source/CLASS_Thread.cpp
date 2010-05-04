@@ -2,7 +2,7 @@
 #include "CLASS_MutexLocker.h"
 
 #ifdef WIN32
-DWORD WINAPI Thread::ThreadProc(void* p)
+DWORD WINAPI Thread::threadProc(void* p)
 {
   Thread* thread = reinterpret_cast<Thread*>(p);
   if (!thread)
@@ -16,6 +16,21 @@ DWORD WINAPI Thread::ThreadProc(void* p)
   thread->done();
   return result;
 }
+#elif LINUX
+void* Thread::threadProc(void* p)
+{
+  Thread* thread = reinterpret_cast<Thread*>(p);
+  if (!thread)
+    return 0;
+  int result = 0;
+  if (thread->init())
+  {
+    result = thread->run();
+    thread->exit();
+  }
+  thread->done();
+  return static_cast<void*>(result);
+}
 #else
 #error Unhandled Platform!
 #endif
@@ -26,6 +41,8 @@ Thread::Thread(void)
 #ifdef WIN32
   m_thread = 0;
   m_threadID = 0;
+#elif LINUX
+  m_thread = 0;
 #else
 #error Unhandled Platform!
 #endif
@@ -44,11 +61,15 @@ bool Thread::start()
   m_running = true;
 
 #ifdef WIN32
-  m_thread = CreateThread(0, 0, &ThreadProc, this, CREATE_SUSPENDED, &m_threadID );
+  m_thread = CreateThread(0, 0, &threadProc, this, CREATE_SUSPENDED, &m_threadID );
   if (m_thread == 0 || m_thread == INVALID_HANDLE_VALUE)
     return false;
 
   ResumeThread(m_thread);
+#elif LINUX
+  int error = pthread_create(&m_thread, NULL, &threadProc, this);
+  if (error != 0)
+    return false;
 #else
 #error Unhandled Platform!
 #endif
@@ -72,18 +93,13 @@ void Thread::wait()
   if (!isRunning())
     return;
   
-  while (true)
-  {
 #ifdef WIN32
-    DWORD exitCode = 0;
-    GetExitCodeThread(m_thread, &exitCode);
-    if (exitCode == STILL_ACTIVE)
-	    continue;
-    Sleep(100);
+  WaitForSingleObject(m_thread, INFINITE);
+#elif LINUX
+  pthread_join(&m_thread, NULL);
 #else
 #error Unhandled Platform!
 #endif
-  }
 }
 
 void Thread::postEvent(int eventID, void* data)
