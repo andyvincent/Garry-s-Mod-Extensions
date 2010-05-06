@@ -154,6 +154,17 @@ void Database::checkQueries()
   }
 }
 
+bool Database::canDelete()
+{
+  if (m_connectionThread->isRunning())
+    return false;
+  if (m_connectionThread->hasEvents())
+    return false;
+  if (!m_runningQueries.empty())
+    return false;
+  return LuaObjectBaseTemplate<Database>::canDelete();
+}
+
 int Database::abortAllQueries()
 {
   for( std::vector<Query*>::iterator it = m_runningQueries.begin();

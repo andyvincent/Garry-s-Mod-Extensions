@@ -37,7 +37,7 @@ void LuaOO::registerClass(ILuaInterface* gLua, LuaClassInfo* classInfo)
 
 // Make the meta table
 	ILuaObject* pMeta = gLua->GetMetaTable( classInfo->className(), classInfo->typeId() );
-  pMeta->SetMember("__gc", LuaObjectBase::deleteWrapper );
+  pMeta->SetMember("__gc", LuaObjectBase::gcDeleteWrapper );
   pMeta->SetMember("__tostring", LuaObjectBase::toStringWrapper);
 	pMeta->SetMember("__index", LuaObjectBase::indexWrapper );
   pMeta->SetMember("__newindex", LuaObjectBase::newIndexWrapper );

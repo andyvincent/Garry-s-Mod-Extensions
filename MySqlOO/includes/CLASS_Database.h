@@ -26,6 +26,7 @@ public:
   virtual ~Database(void);
 
   virtual void poll();
+  virtual bool canDelete();
 
   void setHost(const char* host);
   void setUserPassword(const char* user, const char* pass);

@@ -36,6 +36,7 @@ public:
   void setQuery(const char* query);
 
   virtual void poll();
+  virtual bool canDelete();
 
   bool threadRunning();
 

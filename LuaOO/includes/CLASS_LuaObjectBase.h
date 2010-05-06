@@ -41,6 +41,11 @@ public:
   virtual int toString();
 
   /*!
+    \brief Check if the object can be deleted via the GC
+  */
+  virtual bool canDelete();
+
+  /*!
     \brief Called every frame for the object.
   */
   virtual void poll();
@@ -75,6 +80,11 @@ public:
     \brief Push this on to the stack
   */
   void pushObject();
+
+  /*!
+    \brief Enable or Disable garbage collection for this object
+  */
+  void enableGC(bool enable);
   
   /*!
     \brief Get an object from the stack
@@ -103,6 +113,11 @@ public:
   LUA_FUNCTION( toStringWrapper );
 
   /*!
+    \brief Lua wrapper for enableGC
+  */
+  LUA_FUNCTION( enableGCWrapper );
+
+  /*!
     \brief Lua wrapper for poll
   */
   LUA_FUNCTION( pollWrapper );
@@ -111,6 +126,11 @@ public:
     \brief Lua wrapper for delete & __gc
   */
   LUA_FUNCTION( deleteWrapper );
+
+  /*!
+    \brief Lua wrapper for __gc
+  */
+  LUA_FUNCTION( gcDeleteWrapper );
 
   /*!
     \brief Lua wrapper for __index
@@ -154,6 +174,7 @@ private:
 
   const LuaClassInfo& m_classInfo;
   std::map<std::string, int> m_userTable;
+  bool m_enableGC;
 };
 
 /*!
@@ -226,7 +247,8 @@ public:
     {                                                                      \
       __BIND_FUNCTION(isValid, LuaObjectBase::isValidWrapper, false)       \
       __BIND_FUNCTION(delete, LuaObjectBase::deleteWrapper, false)         \
-      __BIND_FUNCTION(poll, LuaObjectBase::pollWrapper, false)
+      __BIND_FUNCTION(poll, LuaObjectBase::pollWrapper, false)             \
+      __BIND_FUNCTION(enableGC, LuaObjectBase::enableGCWrapper, false)
 
 /*!
   \brief Bind a function for this class

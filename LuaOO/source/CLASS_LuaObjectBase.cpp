@@ -3,6 +3,7 @@
 LuaObjectBase::LuaObjectBase(const LuaClassInfo& classInfo, ILuaInterface* luaInterface)
   : m_luaInterface(luaInterface)
   , m_classInfo(classInfo)
+  , m_enableGC(true)
 {
   LuaOO::instance()->allocated(this);
 }
@@ -28,6 +29,16 @@ bool LuaObjectBase::isValid(bool bError)
 
 void LuaObjectBase::poll()
 {
+}
+
+void LuaObjectBase::enableGC(bool enable)
+{
+  m_enableGC = enable;
+}
+
+bool LuaObjectBase::canDelete()
+{
+  return m_enableGC;
 }
 
 void LuaObjectBase::pushObject()
@@ -328,6 +339,24 @@ LUA_OBJECT_FUNCTION(LuaObjectBase::newIndexWrapper)
   return 0;
 }
 
+LUA_OBJECT_FUNCTION(LuaObjectBase::enableGCWrapper)
+{
+	LuaObjectBase* object = getFromStack(Lua(), 1, false);
+	if (!object)
+	{
+		return 0;
+	}
+  bool enable = true;
+  if (Lua()->Top() >= 2)
+  {
+    if (!LuaOO::checkArgument(Lua(), 2, GLua::TYPE_BOOL))
+      return 0;
+    enable = Lua()->GetBool(2);
+  }
+	object->enableGC(enable);
+	return 0;  
+}
+
 LUA_OBJECT_FUNCTION(LuaObjectBase::isValidWrapper)
 {
 	LuaObjectBase* object = getFromStack(Lua(), 1, false);
@@ -354,6 +383,17 @@ LUA_OBJECT_FUNCTION(LuaObjectBase::deleteWrapper)
 	LuaObjectBase* object = getFromStack(Lua(), 1, false);
 	if (!object)
 		return 0;
+  delete object;
+	return 0;
+}
+
+LUA_OBJECT_FUNCTION(LuaObjectBase::gcDeleteWrapper)
+{
+	LuaObjectBase* object = getFromStack(Lua(), 1, false);
+	if (!object)
+		return 0;
+  if (!object->canDelete())
+    return 0;
   delete object;
 	return 0;
 }

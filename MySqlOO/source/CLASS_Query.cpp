@@ -30,6 +30,15 @@ BEGIN_BINDING(Query)
   BIND_FUNCTION(setOption)
 END_BINDING()
 
+bool Query::canDelete()
+{
+  if (m_queryThread->isRunning())
+    return false;
+  if (m_queryThread->hasEvents())
+    return false;
+  return LuaObjectBaseTemplate<Query>::canDelete();
+}
+
 void Query::setQuery(const char* query)
 {
   m_queryThread->setQuery(query);

@@ -76,6 +76,11 @@ public:
   */
   void postEvent(int eventID, void* data = 0);
 
+  /*!
+    \brief Check if there are any events.
+  */
+  bool hasEvents();
+
 private:
   /*!
     \brief Clear any variables when the thread finishes

@@ -82,6 +82,8 @@ void Thread::done()
 #ifdef WIN32
   m_thread = 0;
   m_threadID = 0;
+#elif LINUX
+  m_thread = 0;
 #else
 #error Unhandled Platform!
 #endif
@@ -128,6 +130,12 @@ bool Thread::getEvent(EventData& event)
   event = *m_events.begin();
   m_events.erase( m_events.begin() );
   return true;
+}
+
+bool Thread::hasEvents()
+{
+  MutexLocker lock(m_eventList);
+  return !m_events.empty();
 }
 
 bool Thread::init()
