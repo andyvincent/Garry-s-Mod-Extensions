@@ -40,6 +40,7 @@ public:
   int escape();
   int abortAllQueries();
   int status();
+  int wait();
 
   MYSQL* lockHandle();
   void unlockHandle();

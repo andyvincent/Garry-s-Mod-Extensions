@@ -20,7 +20,7 @@ Event::~Event()
 #ifdef WIN32
   CloseHandle(m_event);
 #elif LINUX
-  pthread_cond_mutex(&m_mutex);
+  pthread_mutex_destroy(&m_mutex);
 #else
 #error Unhandled Platform!
 #endif

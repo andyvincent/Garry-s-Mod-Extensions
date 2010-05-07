@@ -2,8 +2,6 @@
 #include "GMLuaModule.h"
 #include "CLASS_Test.h"
 
-GMOD_MODULE( Init, Shutdown );
-
 LUA_FUNCTION(Create)
 {
   ILuaInterface* gLua = Lua();
@@ -34,3 +32,4 @@ LUA_FUNCTION(Shutdown)
   return 0;
 }
 
+GMOD_MODULE( Init, Shutdown );

@@ -1,7 +1,7 @@
 #include "CLASS_LuaOO.h"
 #include "CLASS_LuaClassInfo.h"
 #include "CLASS_LuaObjectBase.h"
-#include <strstream>
+#include <sstream>
 
 LuaOO::LuaOO(void)
 {
@@ -131,9 +131,9 @@ bool LuaOO::checkArgument(ILuaInterface* luaInterface, int stackPosition, int ex
   if (expectedTypeName == 0)
     expectedTypeName = "<unknown type>";
 
-  std::strstream errorText;
+  std::stringstream errorText;
   errorText << expectedTypeName << " expected, got " << passedTypeName << "\n";
-  luaInterface->LuaError(errorText.str(), stackPosition);
+  luaInterface->LuaError(errorText.str().c_str(), stackPosition);
   return false;
 }
 

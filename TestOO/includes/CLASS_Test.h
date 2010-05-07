@@ -17,4 +17,4 @@ private:
   time_t m_currentTime;
 };
 
-#endif _CLASS_TEST_H_
+#endif //_CLASS_TEST_H_

@@ -20,14 +20,16 @@ Query::~Query(void)
 }
 
 BEGIN_BINDING(Query)
-	BIND_FUNCTION(start)
-	BIND_FUNCTION(isRunning)
-	BIND_FUNCTION(getData)
-	BIND_FUNCTION(abort)
-	BIND_FUNCTION(lastInsert)
-  BIND_FUNCTION(status)
-  BIND_FUNCTION(affectedRows)
-  BIND_FUNCTION(setOption)
+  BIND_FUNCTION("start", Query::start)
+	BIND_FUNCTION("isRunning", Query::isRunning)
+	BIND_FUNCTION("getData", Query::getData)
+	BIND_FUNCTION("abort", Query::abort)
+	BIND_FUNCTION("lastInsert", Query::lastInsert)
+  BIND_FUNCTION("status", Query::status)
+  BIND_FUNCTION("affectedRows", Query::affectedRows)
+  BIND_FUNCTION("setOption", Query::setOption)
+	BIND_FUNCTION("wait", Query::wait)
+  BIND_FUNCTION("error", Query::error)
 END_BINDING()
 
 bool Query::canDelete()
@@ -182,11 +184,28 @@ int Query::status()
   return 1;
 }
 
+int Query::error()
+{
+  m_luaInterface->Push( m_queryThread->error().c_str() );
+  return 1;
+}
+
 int Query::abort()
 {
   if (!m_queryThread)
     return 0;
   m_queryThread->abort();
+  return 0;
+}
+
+int Query::wait()
+{
+  if (!m_queryThread)
+    return 0;
+  if (!m_queryThread->isRunning())
+    return 0;
+  m_queryThread->wait();// Block, wait for the query to complete.
+  poll(); // Dispatch any events once finished.
   return 0;
 }
 

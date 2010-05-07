@@ -184,13 +184,13 @@ void LuaObjectBase::runCallback(const char* functionName, const char* sig, ...)
       }
       else if (option == 'f')
       {
-        float value = va_arg(arguments, float);
+        float value = static_cast<float>(va_arg(arguments, double));
         m_luaInterface->Push(value);
         numArguments++;
       }
       else if (option == 'b')
       {
-        bool value = va_arg(arguments, bool);
+        bool value = va_arg(arguments, int) != 0;
         m_luaInterface->Push(value);
         numArguments++;
       }

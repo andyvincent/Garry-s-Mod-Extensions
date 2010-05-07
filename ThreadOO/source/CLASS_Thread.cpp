@@ -29,7 +29,7 @@ void* Thread::threadProc(void* p)
     thread->exit();
   }
   thread->done();
-  return static_cast<void*>(result);
+  return (void*)result;
 }
 #else
 #error Unhandled Platform!
@@ -98,7 +98,7 @@ void Thread::wait()
 #ifdef WIN32
   WaitForSingleObject(m_thread, INFINITE);
 #elif LINUX
-  pthread_join(&m_thread, NULL);
+  pthread_join(m_thread, NULL);
 #else
 #error Unhandled Platform!
 #endif

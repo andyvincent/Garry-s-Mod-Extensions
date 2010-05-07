@@ -25,11 +25,12 @@ Database::~Database(void)
 }
 
 BEGIN_BINDING(Database)
-	BIND_FUNCTION( connect )
-	BIND_FUNCTION( query )
-	BIND_FUNCTION( escape )
-	BIND_FUNCTION( abortAllQueries )
-	BIND_FUNCTION( status )
+	BIND_FUNCTION( "connect", Database::connect )
+  BIND_FUNCTION( "query", Database::query )
+	BIND_FUNCTION( "escape", Database::escape )
+	BIND_FUNCTION( "abortAllQueries", Database::abortAllQueries )
+	BIND_FUNCTION( "status", Database::status )
+  BIND_FUNCTION( "wait", Database::wait )
 END_BINDING()
 
 void Database::setRunning(Query* query)
@@ -78,6 +79,17 @@ int Database::connect()
     return 0;
 
   m_connectionThread->start();
+  return 0;
+}
+
+int Database::wait()
+{
+  if (!m_connectionThread)
+    return 0;
+  if (!m_connectionThread->isRunning())
+    return 0;
+  m_connectionThread->wait();// Block, wait for the connection to complete.
+  poll(); // Dispatch any events once finished.
   return 0;
 }
 

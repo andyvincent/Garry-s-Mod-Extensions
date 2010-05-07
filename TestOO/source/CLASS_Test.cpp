@@ -9,8 +9,8 @@ Test::Test(ILuaInterface* li)
 }
 
 BEGIN_BINDING(Test)
-  BIND_FUNCTION(normalTest)
-  BIND_FUNCTION(callbackTest)
+  BIND_FUNCTION("normalTest",Test::normalTest)
+  BIND_FUNCTION("callbackTest",Test::callbackTest)
 END_BINDING()
 
 int Test::normalTest()

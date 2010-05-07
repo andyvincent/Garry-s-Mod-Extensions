@@ -4,8 +4,6 @@
 #include "CLASS_Database.h"
 #include "CLASS_Query.h"
 
-GMOD_MODULE( Init, Shutdown );
-
 LUA_FUNCTION(DatabaseConnect)
 {
   /* Arguments:
@@ -112,4 +110,6 @@ LUA_FUNCTION(Shutdown)
   LuaOO::shutdown();
   return 0;
 }
+
+GMOD_MODULE( Init, Shutdown );
 

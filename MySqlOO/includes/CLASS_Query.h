@@ -48,6 +48,8 @@ public:
   int affectedRows();
   int status();
   int setOption();
+  int wait();
+  int error();
 private:
   inline bool testOption(int option)
   {

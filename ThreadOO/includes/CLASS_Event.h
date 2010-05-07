@@ -12,6 +12,7 @@ class Event
   HANDLE m_event;
 #elif LINUX
   pthread_mutex_t m_mutex;
+  bool m_signal;
 #else
 #error Unhandled Platform!
 #endif

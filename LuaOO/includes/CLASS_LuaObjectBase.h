@@ -225,15 +225,15 @@ public:
 /*!
   \brief Setup some class info
 */
-#define LUA_CLASS_INFO(_CLASS_)                                            \
-  LuaClassInfo LuaObjectBaseTemplate<_CLASS_>::classInfo( #_CLASS_,        \
+#define LUA_CLASS_INFO(_CLASS_)                                                 \
+  template<> LuaClassInfo LuaObjectBaseTemplate<_CLASS_>::classInfo( #_CLASS_,  \
                              _CLASS_::TypeID, _CLASS_ ::setupBindings() );
 
 /*!
   \brief Setup some class info
 */
 #define __BIND_FUNCTION(_FUNCTION_,_DEF_,_META_)   \
-  result.push_back( new LuaBoundFunction(#_FUNCTION_,_DEF_,_META_) );
+  result.push_back( new LuaBoundFunction(_FUNCTION_,_DEF_,_META_) );
 
 /*!
   \brief Begin binding functions for this class.
@@ -245,24 +245,24 @@ public:
     static std::vector<LuaBoundFunction*> result;                          \
     if (result.empty())                                                    \
     {                                                                      \
-      __BIND_FUNCTION(isValid, LuaObjectBase::isValidWrapper, false)       \
-      __BIND_FUNCTION(delete, LuaObjectBase::deleteWrapper, false)         \
-      __BIND_FUNCTION(poll, LuaObjectBase::pollWrapper, false)             \
-      __BIND_FUNCTION(enableGC, LuaObjectBase::enableGCWrapper, false)
+      __BIND_FUNCTION("isValid", _CLASS_::isValidWrapper, false)           \
+      __BIND_FUNCTION("delete", _CLASS_::deleteWrapper, false)             \
+      __BIND_FUNCTION("poll", _CLASS_::pollWrapper, false)                 \
+      __BIND_FUNCTION("enableGC", _CLASS_::enableGCWrapper, false)
 
 /*!
   \brief Bind a function for this class
   \param _FUNCTION_ function to bind in the following specification:
               int _CLASS_::_FUNCTION_();
 */
-#define BIND_FUNCTION(_FUNCTION_)                   __BIND_FUNCTION( _FUNCTION_, (WrappedFunction<&_FUNCTION_, failureFunction>::call), false )
+#define BIND_FUNCTION(_NAME_,_FUNCTION_)                   __BIND_FUNCTION( _NAME_, (WrappedFunction<&_FUNCTION_, failureFunction>::call), false )
 
 /*!
   \brief Bind a meta function for this class
   \param _FUNCTION_ function to bind in the following specification:
               int _CLASS_::_FUNCTION_();
 */
-#define BIND_META_FUNCTION(_FUNCTION_)              __BIND_FUNCTION( _FUNCTION_, (WrappedFunction<&_FUNCTION_, failureFunction>::call), true )
+#define BIND_META_FUNCTION(_NAME_,_FUNCTION_)              __BIND_FUNCTION( _NAME_, (WrappedFunction<&_FUNCTION_, failureFunction>::call), true )
 
 /*!
   \brief Bind a function for this class
@@ -270,7 +270,7 @@ public:
               int _CLASS_::_FUNCTION_();
   \param _FAILURE_ function to call if failed to get the object from the stack
 */
-#define BIND_FUNCTION_EX(_FUNCTION_,_FAILURE_)      __BIND_FUNCTION( _FUNCTION_, (WrappedFunction<&_FUNCTION_, _FAILURE_>::call), false )
+#define BIND_FUNCTION_EX(_NAME_,_FUNCTION_,_FAILURE_)      __BIND_FUNCTION( _NAME_, (WrappedFunction<&_FUNCTION_, _FAILURE_>::call), false )
 
 /*!
   \brief Bind a meta function for this class
@@ -278,7 +278,7 @@ public:
               int _CLASS_::_FUNCTION_();
   \param _FAILURE_ function to call if failed to get the object from the stack
 */
-#define BIND_META_FUNCTION_EX(_FUNCTION_,_FAILURE_) __BIND_FUNCTION( _FUNCTION_, (WrappedFunction<&_FUNCTION_, _FAILURE_>::call), true )
+#define BIND_META_FUNCTION_EX(_NAME_,_FUNCTION_,_FAILURE_) __BIND_FUNCTION( _NAME_, (WrappedFunction<&_FUNCTION_, _FAILURE_>::call), true )
     
 /*!
   \brief Finish binding functions for this class.
