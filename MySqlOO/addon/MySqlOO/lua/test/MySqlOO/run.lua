@@ -215,3 +215,15 @@ addTest("TableQuery - 2 at once", function()
   print("selectQuery1 started")
   selectQuery1:start()
 end )
+
+addTest("TableQuery - Blocking", function()
+  local selectQuery = databaseObject:query("SELECT ID, Name, Cost FROM test WHERE Cost > 0.50")
+  selectQuery:start()
+  selectQuery:wait()
+  if (selectQuery:error() == "") then
+    PrintTable(selectQuery:getData())
+    testSuccess()  
+  else
+    testFailed(selectQuery:error())
+  end
+end )

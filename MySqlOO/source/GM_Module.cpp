@@ -4,6 +4,8 @@
 #include "CLASS_Database.h"
 #include "CLASS_Query.h"
 
+#define VERSION 3
+
 LUA_FUNCTION(DatabaseConnect)
 {
   /* Arguments:
@@ -81,6 +83,8 @@ LUA_FUNCTION(Init)
 
   gLua->NewGlobalTable( "mysqloo" );
   ILuaObject* table = gLua->GetGlobal( "mysqloo" );
+
+    table->SetMember("VERSION", (float)VERSION);
 
     table->SetMember("DATABASE_CONNECTED", (float)DATABASE_CONNECTED);
     table->SetMember("DATABASE_CONNECTING", (float)DATABASE_CONNECTING);
