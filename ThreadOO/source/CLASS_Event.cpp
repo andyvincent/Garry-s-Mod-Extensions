@@ -1,5 +1,6 @@
 
 #include "CLASS_Event.h"
+#include "CLASS_Thread.h"
 
 Event::Event()
 {
@@ -67,12 +68,7 @@ bool Event::wait()
     }
     pthread_mutex_unlock(&m_mutex);
 
-    sched_yield();
-
-    struct timespec timeOut,remains;
-    timeOut.tv_sec = 0;
-    timeOut.tv_nsec = 1000000000; /* 100 milliseconds */
-    nanosleep(&timeOut, &remains);
+    msleep(100);
   }
 #else
 #error Unhandled Platform!

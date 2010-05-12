@@ -2,6 +2,11 @@
 #include "CLASS_MutexLocker.h"
 
 #ifdef WIN32
+void msleep(unsigned int milli)
+{
+  SleepEx(milli, FALSE);
+}
+
 DWORD WINAPI Thread::threadProc(void* p)
 {
   Thread* thread = reinterpret_cast<Thread*>(p);
@@ -17,6 +22,15 @@ DWORD WINAPI Thread::threadProc(void* p)
   return result;
 }
 #elif LINUX
+void msleep(unsigned int milli)
+{
+  sched_yield();
+  struct timespec timeOut,remains;
+  timeOut.tv_sec = 0;
+  timeOut.tv_nsec = 1000000000; /* 100 milliseconds */
+  nanosleep(&timeOut, &remains);
+}
+
 void* Thread::threadProc(void* p)
 {
   Thread* thread = reinterpret_cast<Thread*>(p);
@@ -61,7 +75,7 @@ bool Thread::start()
   m_running = true;
 
 #ifdef WIN32
-  m_thread = CreateThread(0, 0, &threadProc, this, CREATE_SUSPENDED, &m_threadID );
+  m_thread = CreateThread(0, 0, &Thread::threadProc, this, CREATE_SUSPENDED, &m_threadID );
   if (m_thread == 0 || m_thread == INVALID_HANDLE_VALUE)
     return false;
 

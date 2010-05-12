@@ -5,6 +5,8 @@
 #include <vector>
 
 #include "CLASS_Mutex.h"
+
+void msleep(unsigned int milli);
  
 /*!
   \brief Thread class
