@@ -43,7 +43,12 @@ int Database::query()
   if (!checkArgument(2, GLua::TYPE_STRING))
     return 0;
 
-	const char* query = m_luaInterface->GetString(2);
+  if (m_connectionThread->isRunning())
+    return 0;
+  if (!m_connectionThread->wasSuccessful())
+    return 0;
+
+  const char* query = m_luaInterface->GetString(2);
   if (!query)
     return 0;
 
@@ -189,7 +194,7 @@ int Database::abortAllQueries()
   while (!m_runningQueries.empty())
   {
     checkQueries();
-    ::SleepEx(100, TRUE);
+    msleep(100);
   }
 
   return 0;
