@@ -74,7 +74,7 @@ LUA_FUNCTION(DatabaseConnect)
   return 1;
 }
 
-LUA_FUNCTION(Init)
+int Init()
 {
   ILuaInterface* gLua = Lua();
 
@@ -109,7 +109,7 @@ LUA_FUNCTION(Init)
   return 0;
 }
 
-LUA_FUNCTION(Shutdown)
+int Shutdown()
 {
   LuaOO::shutdown();
   return 0;

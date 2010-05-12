@@ -156,10 +156,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\includes\ILuaModuleManager.h"
-				>
-			</File>
-			<File
 				RelativePath=".\includes\ILuaObject.h"
 				>
 			</File>

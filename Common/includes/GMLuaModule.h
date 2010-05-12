@@ -2,7 +2,7 @@
 //  ___  ___   _   _   _    __   _   ___ ___ __ __
 // |_ _|| __| / \ | \_/ |  / _| / \ | o \ o \\ V /
 //  | | | _| | o || \_/ | ( |_n| o ||   /   / \ / 
-//  |_| |___||_n_||_| |_|  \__/|_n_||_|\\_|\\ |_|  2008
+//  |_| |___||_n_||_| |_|  \__/|_n_||_|\\_|\\ |_|  2006
 //										 
 //=============================================================================//
 #ifndef _GMLUAMODULE_H
@@ -12,6 +12,8 @@
 #include <stdlib.h>
 #include <stdarg.h>
 
+#include "ILuaInterface.h"
+
 #ifdef WIN32
 #define GMOD_EXPORT __declspec(dllexport)
 #elif LINUX
@@ -20,28 +22,50 @@
 #error Unhandled Platform!
 #endif
 
-#include "ILuaInterface.h"
-#include "ILuaObject.h"
+typedef struct lua_State lua_State;
+typedef int (*lua_CFunction) (lua_State *L);
 
-#include "ILuaModuleManager.h"
-
+extern ILuaInterface* g_Lua;
 
 // You should place this at the top of your module
 #define GMOD_MODULE( _startfunction_, _closefunction_ ) \
-	ILuaModuleManager* modulemanager = NULL;\
-	int _startfunction_( lua_State* L );\
-	int _closefunction_( lua_State* L );\
+	ILuaInterface* g_Lua = NULL; \
+	int _startfunction_( void );\
+	int _closefunction_( void );\
 	extern "C" int GMOD_EXPORT gmod_open( ILuaInterface* i ) \
 	{ \
-		modulemanager = i->GetModuleManager();\
-		return _startfunction_( (lua_State*)(i->GetLuaState()) );\
+		g_Lua = i;\
+		return _startfunction_();\
 	}\
-	extern "C" int GMOD_EXPORT gmod_close( lua_State* L ) \
+	extern "C" int GMOD_EXPORT gmod_close( int i ) \
 	{\
-		_closefunction_( L );\
+		g_Lua = NULL;\
+		_closefunction_();\
 		return 0;\
 	}\
 
-#define LUA_FUNCTION( _function_ ) static int _function_( lua_State* L )
+static void Msg( char *format, ... )
+{
+	if (!g_Lua) return;
 
-#endif // _GMLUAMODULE_H
+	va_list		argptr;
+  char		string[4096] = {0};
+	va_start ( argptr, format );
+#ifdef WIN32
+	vsnprintf_s( string, sizeof(string)-1, _TRUNCATE, format, argptr );
+#else
+	vsnprintf( string, sizeof(string)-1, format, argptr );
+#endif
+	va_end ( argptr );
+
+	ILuaObject* msg = g_Lua->GetGlobal( "Msg" );
+	if ( !msg || !msg->isFunction() ) return;
+
+	msg->Push();
+	g_Lua->Push( string );
+	g_Lua->Call( 1 );
+}
+
+#define LUA_FUNCTION( _function_ ) static int _function_( lua_State* )
+
+#endif //_GMLUAMODULE_H
