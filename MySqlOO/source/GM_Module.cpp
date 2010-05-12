@@ -4,7 +4,7 @@
 #include "CLASS_Database.h"
 #include "CLASS_Query.h"
 
-#define VERSION 3
+#define VERSION 4
 
 LUA_FUNCTION(DatabaseConnect)
 {
