@@ -48,18 +48,36 @@ timer.Simple(0, nextTest)
 require("mysqloo")
 
 local DATABASE_HOST = "localhost"
-local DATABASE_PORT = 3308
+local DATABASE_PORT = 3306
 local DATABASE_NAME = "test"
 local DATABASE_USERNAME = "root"
-local DATABASE_PASSWORD = "1234"
+local DATABASE_PASSWORD = "5678"
+
+local DATABASE2_HOST = "localhost"
+local DATABASE2_PORT = 3308
+local DATABASE2_NAME = "test"
+local DATABASE2_USERNAME = "root"
+local DATABASE2_PASSWORD = "1234"
 
 local databaseObject = nil
+
+addTest("Version Info", function()
+  if (!mysqloo) then testFailure() end
+ 
+  print( "MySQLoo Version:", mysqloo.VERSION )
+  print( "Client Version:", mysqloo.MYSQL_VERSION )
+  print( "Client Info:", mysqloo.MYSQL_INFO )
+  testSuccess()
+end )
 
 addTest("Connect", function()
   databaseObject = mysqloo.connect(DATABASE_HOST, DATABASE_USERNAME, DATABASE_PASSWORD, DATABASE_NAME, DATABASE_PORT)
   print(databaseObject) // Should print "[Database:<address>]"
   
   function databaseObject.onConnected(self)
+	print( "Server Version:", self:serverVersion() )
+	print( "Server Info:", self:serverInfo() )
+	print( "Host Info:", self:hostInfo() )
     testSuccess()
   end
   
@@ -226,4 +244,44 @@ addTest("TableQuery - Blocking", function()
   else
     testFailed(selectQuery:error())
   end
+end )
+
+addTest("2 database query", function()
+  local otherDatabase = mysqloo.connect(DATABASE2_HOST, DATABASE2_USERNAME, DATABASE2_PASSWORD, DATABASE2_NAME, DATABASE2_PORT)
+
+  function otherDatabase.onConnected(self)
+	print( "Server Version:", self:serverVersion() )
+	print( "Server Info:", self:serverInfo() )
+	print( "Host Info:", self:hostInfo() )
+	
+    local selectQuery1 = databaseObject:query("SELECT ID, Name, Cost FROM test")
+    
+	function selectQuery1.onSuccess(self)
+	  local selectQuery2 = otherDatabase:query("SELECT ID, Name, Cost FROM test WHERE Cost > 0.50")
+	  selectQuery2:start()
+	  selectQuery2:wait()
+	  if (selectQuery2:error() == "") then
+		PrintTable(selectQuery2:getData())
+		testSuccess()  
+	  else
+		testFailed(selectQuery2:error())
+	  end
+	end
+	
+	function selectQuery1.onData(self, data)
+	  print( "selectQuery1", data.ID, data.Name, data.Cost )
+	end
+	
+	function selectQuery1.onError(self, error)
+	  testFailed(error)
+	end
+	
+	selectQuery1:start()
+  end
+  
+  function otherDatabase.onConnectionFailed(self, error)
+    testFailed(error)
+  end
+  
+  otherDatabase:connect()
 end )
