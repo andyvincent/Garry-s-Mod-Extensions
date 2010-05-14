@@ -4,7 +4,7 @@
 #include "CLASS_Database.h"
 #include "CLASS_Query.h"
 
-#define VERSION 4
+#define VERSION 5
 
 LUA_FUNCTION(DatabaseConnect)
 {
@@ -74,7 +74,7 @@ LUA_FUNCTION(DatabaseConnect)
   return 1;
 }
 
-int Init()
+LUA_FUNCTION(Init)
 {
   ILuaInterface* gLua = Lua();
 
@@ -85,6 +85,8 @@ int Init()
   ILuaObject* table = gLua->GetGlobal( "mysqloo" );
 
     table->SetMember("VERSION", (float)VERSION);
+    table->SetMember("MYSQL_VERSION", (float)mysql_get_client_version());
+    table->SetMember("MYSQL_INFO", mysql_get_client_info());
 
     table->SetMember("DATABASE_CONNECTED", (float)DATABASE_CONNECTED);
     table->SetMember("DATABASE_CONNECTING", (float)DATABASE_CONNECTING);
@@ -109,7 +111,7 @@ int Init()
   return 0;
 }
 
-int Shutdown()
+LUA_FUNCTION(Shutdown)
 {
   LuaOO::shutdown();
   return 0;

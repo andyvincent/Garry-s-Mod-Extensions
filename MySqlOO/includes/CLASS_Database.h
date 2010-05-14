@@ -41,6 +41,9 @@ public:
   int abortAllQueries();
   int status();
   int wait();
+  int serverInfo();
+  int serverVersion();
+  int hostInfo();
 
   MYSQL* lockHandle();
   void unlockHandle();

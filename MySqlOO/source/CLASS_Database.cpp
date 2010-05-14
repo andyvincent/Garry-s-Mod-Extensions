@@ -31,6 +31,9 @@ BEGIN_BINDING(Database)
 	BIND_FUNCTION( "abortAllQueries", Database::abortAllQueries )
 	BIND_FUNCTION( "status", Database::status )
   BIND_FUNCTION( "wait", Database::wait )
+  BIND_FUNCTION( "serverVersion", Database::serverVersion )
+  BIND_FUNCTION( "serverInfo", Database::serverInfo )
+  BIND_FUNCTION( "hostInfo", Database::hostInfo )
 END_BINDING()
 
 void Database::setRunning(Query* query)
@@ -121,6 +124,64 @@ int Database::escape()
   return 1;
 }
 
+int Database::serverVersion()
+{
+  if (!m_connectionThread ||
+       m_connectionThread->isRunning() ||
+       !m_connectionThread->wasSuccessful() )
+  {
+    m_luaInterface->PushNil();
+    return 1;
+  }
+
+  m_sqlMutex.lock();
+  m_luaInterface->PushLong( mysql_get_server_version(m_sql) );
+  m_sqlMutex.unLock();
+  return 1;
+}
+
+int Database::hostInfo()
+{
+  if (!m_connectionThread ||
+       m_connectionThread->isRunning() ||
+      !m_connectionThread->wasSuccessful() )
+  {
+    m_luaInterface->PushNil();
+    return 1;
+  }
+
+  m_sqlMutex.lock();
+  const char* info = mysql_get_host_info(m_sql);
+  if (info)
+    m_luaInterface->Push( info );
+  else
+    m_luaInterface->PushNil();
+  m_sqlMutex.unLock();
+
+  return 1;
+}
+
+int Database::serverInfo()
+{
+  if (!m_connectionThread ||
+       m_connectionThread->isRunning() ||
+      !m_connectionThread->wasSuccessful() )
+  {
+    m_luaInterface->PushNil();
+    return 1;
+  }
+
+  m_sqlMutex.lock();
+  const char* info = mysql_get_server_info(m_sql);
+  if (info)
+    m_luaInterface->Push( info );
+  else
+    m_luaInterface->PushNil();
+  m_sqlMutex.unLock();
+
+  return 1;
+}
+
 int Database::status()
 {
   // Internal error!
@@ -144,6 +205,7 @@ int Database::status()
     return 1;
   }
 
+  m_sqlMutex.lock();
   if (mysql_ping(m_sql) == 0)
   {
     m_luaInterface->PushLong( DATABASE_CONNECTED );
@@ -152,6 +214,8 @@ int Database::status()
   {
     m_luaInterface->PushLong( DATABASE_NOT_CONNECTED );
   }
+  m_sqlMutex.unLock();
+
   return 1;
 }
 
