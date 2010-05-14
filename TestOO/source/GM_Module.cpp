@@ -11,7 +11,7 @@ LUA_FUNCTION(Create)
   return 1;
 }
 
-int Init()
+LUA_FUNCTION(Init)
 {
   ILuaInterface* gLua = Lua();
 
@@ -26,7 +26,7 @@ int Init()
   return 0;
 }
 
-int Shutdown()
+LUA_FUNCTION(Shutdown)
 {
   LuaOO::shutdown();
   return 0;
