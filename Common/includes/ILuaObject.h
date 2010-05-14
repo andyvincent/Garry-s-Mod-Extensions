@@ -2,7 +2,7 @@
 //  ___  ___   _   _   _    __   _   ___ ___ __ __
 // |_ _|| __| / \ | \_/ |  / _| / \ | o \ o \\ V /
 //  | | | _| | o || \_/ | ( |_n| o ||   /   / \ / 
-//  |_| |___||_n_||_| |_|  \__/|_n_||_|\\_|\\ |_|  2006
+//  |_| |___||_n_||_| |_|  \__/|_n_||_|\\_|\\ |_|  2008
 //										 
 //=============================================================================//
 
@@ -13,12 +13,14 @@
 #pragma once
 #endif
 
-typedef struct lua_State lua_State;
-typedef int (*CLuaFunction) (lua_State*);
+#include "ILuaInterface.h"
 
-#define SAFE_UNREF( _obj_ ) if ( _obj_ ){ _obj_->UnReference(); _obj_ = NULL; } 
+class ILuaObject;
 
-class ILuaObject 
+//////////////////////////////////////////////////////////////////////////
+//	Name: ILuaObject_001
+//////////////////////////////////////////////////////////////////////////
+class ILuaObject_001
 {
 	public:
 
@@ -48,11 +50,9 @@ class ILuaObject
 		virtual void*			GetMemberUserData( float name, void* = 0 ) = 0;
 		virtual ILuaObject* 	GetMember( const char* name ) = 0;
 		virtual ILuaObject* 	GetMember( ILuaObject* ) = 0;
-		
 
 		virtual void			SetMetaTable( ILuaObject* obj ) = 0;
 		virtual void			SetUserData( void* obj ) = 0;
-
 
 		virtual void			Push( void ) = 0;
 
@@ -63,11 +63,10 @@ class ILuaObject
 		virtual bool			isFunction() = 0;
 		virtual bool			isUserData() = 0;
 
-		// Added 7/Dec/2006
 		virtual ILuaObject* 	GetMember( float fKey ) = 0;
 
-		// Added 17/Dec/2006
-		virtual void*			GetMemberEntity( const char* name, void* = 0 ) = 0; // This is useless to everyone but me - so don't bother trying to use it.
+		virtual void*			Remove_Me_1( const char* name, void* = 0 ) = 0;
+
 		virtual void			SetMember( float fKey ) = 0;
 		virtual void			SetMember( float fKey, ILuaObject* obj ) = 0;
 		virtual void			SetMember( float fKey, float val ) = 0;
@@ -75,13 +74,34 @@ class ILuaObject
 		virtual void			SetMember( float fKey, const char* val ) = 0;
 		virtual void			SetMember( float fKey, CLuaFunction f ) = 0;
 
-		// Added 08/Jan/2007
 		virtual const char*		GetMemberStr( float name, const char* = "" ) = 0;
 
-		// Added 09/Jan/2007
 		virtual void			SetMember( ILuaObject* k, ILuaObject* v ) = 0;
 		virtual bool			GetBool( void ) = 0;
 
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//	Name: ILuaObject
+//////////////////////////////////////////////////////////////////////////
+class ILuaObject : public ILuaObject_001
+{
+	public:
+
+		// Push members to table from stack
+		virtual bool			PushMemberFast( int iStackPos ) = 0;
+		virtual void			SetMemberFast( int iKey, int iValue ) = 0;
+
+		virtual void			SetFloat( float val ) = 0;
+		virtual void			SetString( const char* val ) = 0;
+
+		// Return members of table
+		virtual CUtlLuaVector*	GetMembers( void ) = 0;
+
+		// Set member 'pointer'. No GC, no metatables. 
+		virtual void			SetMemberUserDataLite( const char* strKeyName, void* pData ) = 0;
+		virtual void*			GetMemberUserDataLite( const char* strKeyName ) = 0;
 };
 
 #endif // ILUAOBJECT_H
