@@ -35,6 +35,7 @@ void LuaOO::registerClass(ILuaInterface* gLua, LuaClassInfo* classInfo)
   if (isRegistered(classInfo))
     return;
 
+#ifdef FULL_USER_DATA
 // Make the meta table
 	ILuaObject* pMeta = gLua->GetMetaTable( classInfo->className(), classInfo->typeId() );
   pMeta->SetMember("__gc", LuaObjectBase::gcDeleteWrapper );
@@ -44,6 +45,7 @@ void LuaOO::registerClass(ILuaInterface* gLua, LuaClassInfo* classInfo)
 
 // Cleanup
   pMeta->UnReference();
+#endif
 
 // Register the type with our list
 	registerType( classInfo );

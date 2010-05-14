@@ -46,6 +46,7 @@ void LuaObjectBase::pushObject()
   if (!m_luaInterface)
     return;
 
+#ifdef FULL_USER_DATA
   ILuaObject* metaTable = m_luaInterface->GetMetaTable(m_classInfo.className(), m_classInfo.typeId());
   if (!metaTable)
     return;
@@ -53,10 +54,39 @@ void LuaObjectBase::pushObject()
   m_luaInterface->PushUserData(metaTable, this);
 
   metaTable->UnReference();
+#else
+  if (latestRef())
+  {
+    latestRef()->Push();
+  }
+  else
+  {
+    ILuaObject* metaTable = m_luaInterface->GetNewTable();
+    metaTable->SetMember("__gc", LuaObjectBase::gcDeleteWrapper );
+    metaTable->SetMember("__tostring", LuaObjectBase::toStringWrapper);
+
+    ILuaObject* object = m_luaInterface->GetNewTable();
+    object->SetMemberUserDataLite("_this", this);
+    const std::vector<LuaBoundFunction*>& list = m_classInfo.functionList();
+    for (std::vector<LuaBoundFunction*>::const_iterator it = list.begin(); 
+          it != list.end(); 
+          ++it)
+    {
+      object->SetMember( (*it)->functionName(), (*it)->function() );
+    }
+    object->SetMetaTable(metaTable);
+
+    object->Push();
+    
+    metaTable->UnReference();
+    object->UnReference();
+  }
+#endif
 }
 
 LuaObjectBase* LuaObjectBase::getFromObject(ILuaInterface* luaInterface, ILuaObject* object, bool error)
 {
+#ifdef FULL_USER_DATA
   // Make sure it's some user data!
 	if (!object->isUserData())
 	{
@@ -71,20 +101,39 @@ LuaObjectBase* LuaObjectBase::getFromObject(ILuaInterface* luaInterface, ILuaObj
 	
   // Just a simple cast required
 	return reinterpret_cast<LuaObjectBase*>(object->GetUserData());
+#else
+  void* userData = object->GetMemberUserDataLite("_this");
+
+	if (!checkValidity(luaInterface, 0, (LuaObjectBase*)userData, error))
+		return 0;
+
+  LuaObjectBase* baseObject = reinterpret_cast<LuaObjectBase*>(userData);
+  baseObject->luaRef(object);
+  return baseObject;
+#endif
 }
 
 LuaObjectBase* LuaObjectBase::getFromStack(ILuaInterface* luaInterface, int position, bool error)
 {
+#ifdef FULL_USER_DATA
   // Check the object
 	if (!checkValidity(luaInterface, position, error))
 		return 0;
-	
+
   // Just a simple cast required
 	return reinterpret_cast<LuaObjectBase*>(luaInterface->GetUserData(position));
+#else
+  ILuaObject* object = luaInterface->GetObject(position);
+  if (!object)
+    return 0;
+
+  return getFromObject(luaInterface, object, error);
+#endif
 }
 
 bool LuaObjectBase::checkValidity(ILuaInterface* luaInterface, int type, LuaObjectBase* object, bool error)
 {
+#ifdef FULL_USER_DATA
   // Make sure we recognise the type number
   if (!LuaOO::instance()->typeRegistered(type))
 	{
@@ -92,6 +141,7 @@ bool LuaObjectBase::checkValidity(ILuaInterface* luaInterface, int type, LuaObje
 			luaInterface->LuaError("Invalid object! (unknown type)\n");
     return false;
 	}
+#endif
 
   // Check for a NULL pointer
 	if (object == 0)
@@ -109,6 +159,7 @@ bool LuaObjectBase::checkValidity(ILuaInterface* luaInterface, int type, LuaObje
 		return false;
 	}
 
+#ifdef FULL_USER_DATA
   // Check the type (this should always be correct)
 	if (object->m_classInfo.typeId() != type)
 	{
@@ -116,6 +167,7 @@ bool LuaObjectBase::checkValidity(ILuaInterface* luaInterface, int type, LuaObje
 			luaInterface->LuaError("Invalid object! (types are different)\n");
 		return false;
 	}
+#endif
 
   // Check the interface pointer (this should always be correct)
 	if (object->m_luaInterface != luaInterface)
@@ -130,6 +182,7 @@ bool LuaObjectBase::checkValidity(ILuaInterface* luaInterface, int type, LuaObje
 
 bool LuaObjectBase::checkValidity(ILuaInterface* luaInterface, int position, bool error)
 {
+#ifdef FULL_USER_DATA
 // Make sure it's some user data!
 	if (!luaInterface->isUserData(position))
 	{
@@ -143,6 +196,16 @@ bool LuaObjectBase::checkValidity(ILuaInterface* luaInterface, int position, boo
 // Acually do the check
 	int type = luaInterface->GetType(position);
 	LuaObjectBase* object = reinterpret_cast<LuaObjectBase*>( luaInterface->GetUserData(position) );
+#else
+  ILuaObject* table = luaInterface->GetObject(position);
+  if (!table)
+    return 0;
+
+	LuaObjectBase* object = reinterpret_cast<LuaObjectBase*>( table->GetMemberUserDataLite("_this") );
+  int type = 0;
+
+  table->UnReference();
+#endif
 
 	return checkValidity(luaInterface, type, object, error);
 }
@@ -154,19 +217,24 @@ bool LuaObjectBase::checkArgument(int stackPosition, int expectedType)
 
 void LuaObjectBase::runCallback(const char* functionName, const char* sig, ...)
 {
+#ifdef FULL_USER_DATA
   // Find the callback function.
   std::map<std::string,int>::iterator index = m_userTable.find( std::string(functionName) );
   if (index == m_userTable.end())
     return;
   int callbackFunction = index->second;
 
-  // Get ourselves as a callback object
-  ILuaObject* callbackObject = getAsObject();
-  if (!callbackObject)
-    return;
-
   m_luaInterface->PushReference(callbackFunction);
-  m_luaInterface->Push(callbackObject);
+#else
+  if (!latestRef())
+    return;
+  ILuaObject* callbackFunction = latestRef()->GetMember(functionName);
+  if (!callbackFunction)
+    return;
+  callbackFunction->Push();
+  callbackFunction->UnReference();
+#endif
+  pushObject();
 
   int numArguments = 1;
   if (sig)
@@ -223,8 +291,6 @@ void LuaObjectBase::runCallback(const char* functionName, const char* sig, ...)
   }
 
   m_luaInterface->Call(numArguments);
-
-  callbackObject->UnReference();
 }
 
 ILuaObject* LuaObjectBase::getAsObject()
@@ -233,10 +299,10 @@ ILuaObject* LuaObjectBase::getAsObject()
 	pushObject();
 	
 // Get it as an ILuaObject
-	ILuaObject* object = m_luaInterface->GetObject();
+  ILuaObject* object = m_luaInterface->GetObject();
 
 // Pop it off the stack & return
-	m_luaInterface->Pop();
+  m_luaInterface->Pop();
 	return object;
 }
 
@@ -264,9 +330,12 @@ LUA_OBJECT_FUNCTION(LuaObjectBase::toStringWrapper)
 		return 1;
   }
 
-	return object->toString();
+	int ret =  object->toString();
+  object->luaUnRef();
+  return ret;
 }
 
+#ifdef FULL_USER_DATA
 LUA_OBJECT_FUNCTION(LuaObjectBase::indexWrapper)
 {
 	LuaObjectBase* object = getFromStack(Lua(), 1, false);
@@ -297,9 +366,11 @@ LUA_OBJECT_FUNCTION(LuaObjectBase::indexWrapper)
     if (index != object->m_userTable.end())
     {
       Lua()->PushReference( index->second );
+      object->luaUnRef();
       return 1;
     }
   }
+  object->luaUnRef();
 
   return 0;
 }
@@ -318,6 +389,7 @@ LUA_OBJECT_FUNCTION(LuaObjectBase::newIndexWrapper)
     if (function)
     {
       Lua()->LuaError("Attempt to override meta function", 2);
+      object->luaUnRef();
       return 0;
     }
 
@@ -335,9 +407,11 @@ LUA_OBJECT_FUNCTION(LuaObjectBase::newIndexWrapper)
       object->m_userTable[key] = ref;
     }
   }
+  object->luaUnRef();
 
   return 0;
 }
+#endif
 
 LUA_OBJECT_FUNCTION(LuaObjectBase::enableGCWrapper)
 {
@@ -350,10 +424,14 @@ LUA_OBJECT_FUNCTION(LuaObjectBase::enableGCWrapper)
   if (Lua()->Top() >= 2)
   {
     if (!LuaOO::checkArgument(Lua(), 2, GLua::TYPE_BOOL))
+    {
+      object->luaUnRef();
       return 0;
+    }
     enable = Lua()->GetBool(2);
   }
 	object->enableGC(enable);
+  object->luaUnRef();
 	return 0;  
 }
 
@@ -366,6 +444,7 @@ LUA_OBJECT_FUNCTION(LuaObjectBase::isValidWrapper)
 		return 1;
 	}
 	Lua()->Push( object->isValid(false) );
+  object->luaUnRef();
 	return 1;
 }
 
@@ -375,6 +454,7 @@ LUA_OBJECT_FUNCTION(LuaObjectBase::pollWrapper)
 	if (!object)
 		return 0;
   object->poll();
+  object->luaUnRef();
 	return 0;
 }
 
@@ -383,6 +463,7 @@ LUA_OBJECT_FUNCTION(LuaObjectBase::deleteWrapper)
 	LuaObjectBase* object = getFromStack(Lua(), 1, false);
 	if (!object)
 		return 0;
+  object->luaUnRef();
   delete object;
 	return 0;
 }
@@ -393,7 +474,11 @@ LUA_OBJECT_FUNCTION(LuaObjectBase::gcDeleteWrapper)
 	if (!object)
 		return 0;
   if (!object->canDelete())
+  {
+    object->luaUnRef();
     return 0;
+  }
+  object->luaUnRef();
   delete object;
 	return 0;
 }

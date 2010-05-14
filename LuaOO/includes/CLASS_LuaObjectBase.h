@@ -132,6 +132,7 @@ public:
   */
   LUA_FUNCTION( gcDeleteWrapper );
 
+#ifdef FULL_USER_DATA
   /*!
     \brief Lua wrapper for __index
   */
@@ -141,6 +142,7 @@ public:
     \brief Lua wrapper for __newindex
   */
   LUA_FUNCTION( newIndexWrapper );
+#endif
 
   /*!
     \brief Lua wrapper called when an object is attempted to be 
@@ -150,10 +152,12 @@ public:
 protected:
   ILuaInterface* m_luaInterface;
 
+#ifdef FULL_USER_DATA
   /*!
     \brief Look up a function based on it's name
   */
   CLuaFunction lookupFunction(const char* name);
+#endif
 private:
   /*!
     \brief Check an objects validity
@@ -173,8 +177,30 @@ private:
   static bool checkValidity(ILuaInterface* luaInterface, int type, LuaObjectBase* object, bool error);
 
   const LuaClassInfo& m_classInfo;
+#ifdef FULL_USER_DATA
   std::map<std::string, int> m_userTable;
+#endif
   bool m_enableGC;
+protected:
+  std::vector<ILuaObject*> m_luaObjects;
+  ILuaObject* latestRef()
+  {
+    if (m_luaObjects.empty())
+      return 0;
+    return m_luaObjects[ m_luaObjects.size()-1 ];
+  }
+  void luaRef(ILuaObject* o)
+  {
+    m_luaObjects.push_back(o);
+  }
+  void luaUnRef()
+  {
+    if (latestRef())
+    {
+      latestRef()->UnReference();
+      m_luaObjects.pop_back();
+    }
+  }
 };
 
 /*!
@@ -209,7 +235,9 @@ public:
       CLASS* pObject = dynamic_cast<CLASS*>( getFromStack(gLua, 1, true) );
       if (!pObject)
         return FAILURE(L);
-      return (pObject->*fpt)();
+      int ret = (pObject->*fpt)();
+      pObject->luaUnRef();
+      return ret;
     }
   };
 };
