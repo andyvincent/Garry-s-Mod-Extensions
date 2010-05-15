@@ -3,6 +3,8 @@
 #include "CLASS_Query.h"
 #include "CLASS_MutexLocker.h"
 
+#include <string.h>
+
 Database::Database(ILuaInterface* luaInterface)
   : LuaObjectBaseTemplate<Database>(luaInterface)
 {

@@ -1,7 +1,7 @@
 #ifndef _MODULE_LUAOO_H_
 #define _MODULE_LUAOO_H_
 
-#include "GMLuaModule.h"
+#include "GMLuaHeaders.h"
 
 #define FULL_USER_DATA
 

@@ -1,14 +1,7 @@
-SOURCESDK = /home/andy/SourceMod/Mod2/hl2sdk-ob
-
 ARCH = i486
-INCLUDES = -I../Common/includes -I./includes -I../LuaOO/includes -I$(SOURCESDK)/public
+INCLUDES = -I../Common/includes -I./includes -I../LuaOO/includes
 
-VALVE_CFLAGS = -mtune=i686 -march=pentium3 -mmmx -m32
-VALVE_DEFINES = -D_finite=finite -Dstricmp=strcasecmp -D_stricmp=strcasecmp \
-	-D_strnicmp=strncasecmp -Dstrnicmp=strncasecmp -D_vsnprintf=vsnprintf -D_alloca=alloca -Dstrcmpi=strcasecmp
-VALVE_LIBS = $(SOURCESDK)/lib/linux/tier1_$(ARCH).a $(SOURCESDK)/lib/linux/tier3_$(ARCH).a
-
-CFLAGS = -Wall $(INCLUDES) -D_LINUX -DLINUX $(VALVE_DEFINES) $(VALVE_CFLAGS)
+CFLAGS = -Wall -DLINUX -DNDEBUG $(INCLUDES)
 
 MODE = Debug
 LIBDIR = output/$(MODE)/$(ARCH)
@@ -18,7 +11,7 @@ SOURCEDIR = source
 OBJECTS = $(OBJDIR)/CLASS_Test.obj \
 			$(OBJDIR)/GM_Module.obj
 			
-LIBS = $(VALVE_LIBS) ../LuaOO/$(LIBDIR)/luaoo.a -lstdc++
+LIBS = ../LuaOO/$(LIBDIR)/luaoo.a -lstdc++
 			
 CC = gcc
 MKDIR = mkdir -p
@@ -26,9 +19,15 @@ AR = ar
 RM = rm -f
 RMDIR = rmdir -p
 
-$(LIBDIR)/gm_testoo_$(ARCH).so: $(OBJECTS)
+all: $(LIBDIR)/gmcl_testoo_$(ARCH).dll $(LIBDIR)/gmsv_testoo_$(ARCH).dll
+
+$(LIBDIR)/gmcl_testoo_$(ARCH).dll: $(OBJECTS)
 	$(MKDIR) $(LIBDIR)
-	$(CC) -shared -o $@ $< $(CFLAGS) $(LIBS)
+	$(CC) -shared -o $@ $(CFLAGS) $(OBJECTS) $(LIBS)
+	
+$(LIBDIR)/gmsv_testoo_$(ARCH).dll: $(OBJECTS)
+	$(MKDIR) $(LIBDIR)
+	$(CC) -shared -o $@ $(CFLAGS) $(OBJECTS) $(LIBS)
 	
 $(OBJDIR)/%.obj : $(SOURCEDIR)/%.cpp
 	$(MKDIR) $(OBJDIR)
@@ -36,5 +35,6 @@ $(OBJDIR)/%.obj : $(SOURCEDIR)/%.cpp
 	
 clean:
 	$(RM)     $(OBJECTS)
-	$(RM)     $(LIBDIR)/threadoo.a
+	$(RM)     $(LIBDIR)/gmsv_testoo_$(ARCH).dll
+	$(RM)     $(LIBDIR)/gmcl_testoo_$(ARCH).dll
 	$(RMDIR)  $(OBJDIR)

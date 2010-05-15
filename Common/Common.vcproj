@@ -148,21 +148,45 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath=".\includes\GMLuaModule.h"
+				RelativePath=".\includes\GMLuaHeaders.h"
 				>
 			</File>
-			<File
-				RelativePath=".\includes\ILuaInterface.h"
+			<Filter
+				Name="v1"
 				>
-			</File>
-			<File
-				RelativePath=".\includes\ILuaModuleManager.h"
+				<File
+					RelativePath=".\includes\v1\GMLuaModule.h"
+					>
+				</File>
+				<File
+					RelativePath=".\includes\v1\ILuaInterface.h"
+					>
+				</File>
+				<File
+					RelativePath=".\includes\v1\ILuaObject.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="v2"
 				>
-			</File>
-			<File
-				RelativePath=".\includes\ILuaObject.h"
-				>
-			</File>
+				<File
+					RelativePath=".\includes\v2\GMLuaModule.h"
+					>
+				</File>
+				<File
+					RelativePath=".\includes\v2\ILuaInterface.h"
+					>
+				</File>
+				<File
+					RelativePath=".\includes\v2\ILuaModuleManager.h"
+					>
+				</File>
+				<File
+					RelativePath=".\includes\v2\ILuaObject.h"
+					>
+				</File>
+			</Filter>
 		</Filter>
 	</Files>
 	<Globals>

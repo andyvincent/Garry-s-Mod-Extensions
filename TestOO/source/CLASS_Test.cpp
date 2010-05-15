@@ -13,17 +13,23 @@ BEGIN_BINDING(Test)
   BIND_FUNCTION("callbackTest",Test::callbackTest)
 END_BINDING()
 
+#if GMOD_VERSION == 1
+#define DebugMessage  Msg
+#else
+#define DebugMessage  m_luaInterface->Msg
+#endif
+
 int Test::normalTest()
 {
-  Msg("Testing..Testing...1...2...3...\n");
+  DebugMessage("Testing..Testing...1...2...3...\n");
   return 0;
 }
 
 int Test::callbackTest()
 {
-  Msg("Running callback...\n");
+  DebugMessage("Running callback...\n");
   runCallback("onCallback", "si", "test", (int)m_currentTime);
-  Msg("...Done\n");
+  DebugMessage("...Done\n");
   return 0;
 }
 
@@ -32,7 +38,7 @@ void Test::poll()
   time_t nowTime = time(0);
   if (m_currentTime != nowTime)
   {
-    Msg("Poll ... %d\n", nowTime);
+    DebugMessage("Poll ... %d\n", nowTime);
     m_currentTime = nowTime;
   }
 }

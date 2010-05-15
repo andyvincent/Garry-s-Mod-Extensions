@@ -13,13 +13,16 @@
 #pragma once
 #endif
 
+#ifndef NO_SOURCE_SDK
 #include "tier1/utlvector.h"
+#endif
 
 // Forward Definitions
 class ILuaObject;
 class ILuaModuleManager;
 struct lua_State;
 
+#ifndef NO_SOURCE_SDK
 // This struct is used to get a Lua table from Lua to C++
 struct LuaKeyValue
 {
@@ -28,6 +31,9 @@ struct LuaKeyValue
 };
 
 typedef CUtlVector<LuaKeyValue> CUtlLuaVector;
+#else
+class CUtlLuaVector;
+#endif
 
 typedef void (*VoidFunction) ( void );
 typedef int (*CLuaFunction) (lua_State*);

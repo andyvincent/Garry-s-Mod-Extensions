@@ -1,5 +1,7 @@
 #include "CLASS_LuaObjectBase.h"
 
+#include <string.h>
+
 LuaObjectBase::LuaObjectBase(const LuaClassInfo& classInfo, ILuaInterface* luaInterface)
   : m_luaInterface(luaInterface)
   , m_classInfo(classInfo)

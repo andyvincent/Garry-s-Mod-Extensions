@@ -11,4 +11,4 @@ public:
   virtual ~DataRow(void);
 };
 
-#endif _CLASS_DATAROW_H_
+#endif //_CLASS_DATAROW_H_

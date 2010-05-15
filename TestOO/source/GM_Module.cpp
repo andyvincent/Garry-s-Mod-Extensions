@@ -1,5 +1,5 @@
 
-#include "GMLuaModule.h"
+#include "GMLuaHeaders.h"
 #include "CLASS_Test.h"
 
 LUA_FUNCTION(Create)
@@ -11,7 +11,7 @@ LUA_FUNCTION(Create)
   return 1;
 }
 
-LUA_FUNCTION(Init)
+GMOD_FUNCTION(Init)
 {
   ILuaInterface* gLua = Lua();
 
@@ -26,7 +26,7 @@ LUA_FUNCTION(Init)
   return 0;
 }
 
-LUA_FUNCTION(Shutdown)
+GMOD_FUNCTION(Shutdown)
 {
   LuaOO::shutdown();
   return 0;

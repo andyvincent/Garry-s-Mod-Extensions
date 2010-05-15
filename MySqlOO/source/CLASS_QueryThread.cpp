@@ -4,6 +4,7 @@
 #include "CLASS_Database.h"
 
 #include <sstream>
+#include <string.h>
 
 QueryThread::QueryThread(Database* dbase)
   : Thread()

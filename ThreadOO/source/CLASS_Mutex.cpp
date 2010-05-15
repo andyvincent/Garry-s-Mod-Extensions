@@ -6,7 +6,6 @@ Mutex::Mutex()
 #ifdef WIN32
   InitializeCriticalSection(&m_mutex);
 #elif LINUX
-  m_mutex = PTHREAD_MUTEX_INITIALIZER;
   pthread_mutex_init(&m_mutex, NULL);
 #else
 #error Unhandled Platform!

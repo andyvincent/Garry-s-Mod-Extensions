@@ -8,8 +8,6 @@ Event::Event()
   m_event = CreateEvent(0, TRUE, FALSE, 0);
 #elif LINUX
   m_signal = false;
-
-  m_mutex = PTHREAD_MUTEX_INITIALIZER;
   pthread_mutex_init(&m_mutex, NULL);
 #else
 #error Unhandled Platform!
@@ -70,6 +68,7 @@ bool Event::wait()
 
     msleep(100);
   }
+  return true;
 #else
 #error Unhandled Platform!
 #endif

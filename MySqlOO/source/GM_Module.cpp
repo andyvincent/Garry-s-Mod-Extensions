@@ -1,5 +1,5 @@
 
-#include "GMLuaModule.h"
+#include "GMLuaHeaders.h"
 
 #include "CLASS_Database.h"
 #include "CLASS_Query.h"
@@ -74,7 +74,7 @@ LUA_FUNCTION(DatabaseConnect)
   return 1;
 }
 
-LUA_FUNCTION(Init)
+GMOD_FUNCTION(Init)
 {
   ILuaInterface* gLua = Lua();
 
@@ -111,7 +111,7 @@ LUA_FUNCTION(Init)
   return 0;
 }
 
-LUA_FUNCTION(Shutdown)
+GMOD_FUNCTION(Shutdown)
 {
   LuaOO::shutdown();
   return 0;

@@ -103,7 +103,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="G:\Documents\Source\Mod1\public;.\includes;..\Common\includes"
+				AdditionalIncludeDirectories=".\includes;..\Common\includes"
 				PreprocessorDefinitions="WIN32;NDEBUG;LUAOO_EXPORTS"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
