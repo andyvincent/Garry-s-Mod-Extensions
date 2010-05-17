@@ -6,7 +6,7 @@ INCLUDES = -I../Common/includes -I./includes -I../LuaOO/includes -I../ThreadOO/i
 
 CFLAGS = -Wall -DLINUX -DNDEBUG $(INCLUDES) $(MYSQL_CFLAGS)
 
-MODE = Debug
+MODE = Release
 LIBDIR = output/$(MODE)/$(ARCH)
 OBJDIR = $(LIBDIR)/obj
 SOURCEDIR = source

@@ -3,6 +3,7 @@
 
 #include "PlatformSpecific.h"
 #include <vector>
+#include <map>
 
 #include "CLASS_Mutex.h"
 
@@ -14,6 +15,7 @@ void msleep(unsigned int milli);
 class Thread
 {
 public:
+  static Thread* currentThread();
   /*!
     \brief Generic event notification
   */
@@ -91,22 +93,29 @@ private:
   bool m_running;
 
 #ifdef WIN32
-  HANDLE m_thread;
+  typedef HANDLE ThreadHandleType;
   DWORD m_threadID;
   /*!
     \brief Thread entry point (windows)
   */
   static DWORD WINAPI threadProc(void* p);
 #elif LINUX
-  pthread_t m_thread;
+  typedef pthread_t ThreadHandleType;
 
   static void* threadProc(void* p);
 #else
 #error Unhandled Platform!
 #endif
 
+  ThreadHandleType m_thread;
+  static Mutex s_activeThreadMutex;
+  static std::map<ThreadHandleType, Thread*> s_activeThreads;
+  typedef std::map<ThreadHandleType, Thread*>::iterator ThreadIterator;
+
   Mutex m_eventList;
   std::vector<EventData> m_events;
+
+  void setActive(bool b);
 };
 
 #endif //_CLASS_THREAD_H_

@@ -3,7 +3,7 @@ INCLUDES = -I../Common/includes -I./includes
 
 CFLAGS = -Wall -DLINUX -DNDEBUG $(INCLUDES)
 
-MODE = Debug
+MODE = Release
 LIBDIR = output/$(MODE)/$(ARCH)
 OBJDIR = $(LIBDIR)/obj
 SOURCEDIR = source

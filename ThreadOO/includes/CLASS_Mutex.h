@@ -3,11 +3,14 @@
 
 #include "PlatformSpecific.h"
 
+class Thread;
+
 /*!
   \brief Mutex object
 */
 class Mutex
 {
+  Thread* m_lockedBy;
 #ifdef WIN32
   CRITICAL_SECTION m_mutex;
 #elif LINUX

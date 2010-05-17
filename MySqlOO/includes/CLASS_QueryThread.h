@@ -40,7 +40,9 @@ public:
   std::vector<std::string> columns();
   std::vector<int> columnTypes();
 
+  virtual bool init();
   virtual int run();
+  virtual void exit();
 private:
   std::string m_query;
   Database* m_database;

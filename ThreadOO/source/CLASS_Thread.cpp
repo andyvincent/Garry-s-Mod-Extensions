@@ -1,6 +1,9 @@
 #include "CLASS_Thread.h"
 #include "CLASS_MutexLocker.h"
 
+Mutex Thread::s_activeThreadMutex;
+std::map<Thread::ThreadHandleType, Thread*> Thread::s_activeThreads;
+
 #ifdef WIN32
 void msleep(unsigned int milli)
 {
@@ -12,6 +15,8 @@ DWORD WINAPI Thread::threadProc(void* p)
   Thread* thread = reinterpret_cast<Thread*>(p);
   if (!thread)
     return 0;
+
+  thread->setActive(true);
   int result = 0;
   if (thread->init())
   {
@@ -19,6 +24,8 @@ DWORD WINAPI Thread::threadProc(void* p)
     thread->exit();
   }
   thread->done();
+  thread->setActive(false);
+
   return result;
 }
 #elif LINUX
@@ -36,6 +43,8 @@ void* Thread::threadProc(void* p)
   Thread* thread = reinterpret_cast<Thread*>(p);
   if (!thread)
     return 0;
+  
+  thread->setActive(true);
   int result = 0;
   if (thread->init())
   {
@@ -43,11 +52,52 @@ void* Thread::threadProc(void* p)
     thread->exit();
   }
   thread->done();
+  thread->setActive(false);
+
   return (void*)result;
 }
 #else
 #error Unhandled Platform!
 #endif
+
+void Thread::setActive(bool b)
+{
+  s_activeThreadMutex.lock();
+  if (b)
+  {
+    s_activeThreads[m_thread] = this;
+  }
+  else
+  {
+    ThreadIterator iterator = s_activeThreads.find(m_thread);
+    if (iterator != s_activeThreads.end())
+      s_activeThreads.erase(iterator);
+  }
+  s_activeThreadMutex.unLock();
+}
+
+Thread* Thread::currentThread()
+{
+#ifdef WIN32
+  HANDLE currentThread = GetCurrentThread();
+#elif LINUX
+  pthread_t currentThread = pthread_self();
+#else
+#error Unhandled Platform!
+#endif
+
+  s_activeThreadMutex.lock();
+  ThreadIterator iterator = s_activeThreads.find(currentThread);
+  if (iterator == s_activeThreads.end())
+  {
+    s_activeThreadMutex.unLock();
+    return 0;
+  }
+  Thread* activeThread = (*iterator).second;
+  s_activeThreadMutex.unLock();
+
+  return activeThread;
+}
 
 Thread::Thread(void)
 {

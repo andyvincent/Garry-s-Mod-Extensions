@@ -29,6 +29,17 @@ ConnectThread::~ConnectThread(void)
 {
 }
 
+bool ConnectThread::init()
+{
+  mysql_thread_init();
+  return true;
+}
+
+void ConnectThread::exit()
+{
+  mysql_thread_end();
+}
+
 void ConnectThread::setHost(const char* host)
 {
   MutexLocker dataLock(m_dataMutex);

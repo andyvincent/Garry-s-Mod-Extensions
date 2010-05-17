@@ -69,6 +69,17 @@ bool QueryThread::checkAbort()
   return m_abort;
 }
 
+bool QueryThread::init()
+{
+  mysql_thread_init();
+  return true;
+}
+
+void QueryThread::exit()
+{
+  mysql_thread_end();
+}
+
 int QueryThread::run()
 {
   // Note: The m_abort flag does not actually abort, after the mysql_query function:
@@ -99,7 +110,6 @@ int QueryThread::run()
   sql = m_database->lockHandle();
   if (mysql_query(sql, m_query.c_str()) != 0)
 	{
-
     MutexLocker lock(m_resultInfo);
     m_error = true;
     m_errorText = mysql_error(sql);
@@ -138,33 +148,35 @@ int QueryThread::run()
   }
 
   int numColumns = mysql_num_fields(pResult);
-
+  
   {
-    MutexLocker lock(m_resultInfo);
-	  for(int i = 0; i < numColumns; i++)
     {
-      MYSQL_FIELD* field = mysql_fetch_field_direct(pResult, i);
-      if (field && field->name && strlen(field->name))
+      MutexLocker lock(m_resultInfo);
+	    for(int i = 0; i < numColumns; i++)
       {
-        m_columns.push_back( std::string(field->name) );
+        MYSQL_FIELD* field = mysql_fetch_field_direct(pResult, i);
+        if (field && field->name && strlen(field->name))
+        {
+          m_columns.push_back( std::string(field->name) );
 
-        if (field->type == MYSQL_TYPE_TINY || field->type == MYSQL_TYPE_SHORT || field->type == MYSQL_TYPE_LONG || field->type == MYSQL_TYPE_LONG)
-          m_columnType.push_back( INTEGER );
-        else if (field->type == MYSQL_TYPE_FLOAT || field->type == MYSQL_TYPE_DOUBLE)
-          m_columnType.push_back( FLOATING_POINT );
+          if (field->type == MYSQL_TYPE_TINY || field->type == MYSQL_TYPE_SHORT || field->type == MYSQL_TYPE_LONG || field->type == MYSQL_TYPE_LONG)
+            m_columnType.push_back( INTEGER );
+          else if (field->type == MYSQL_TYPE_FLOAT || field->type == MYSQL_TYPE_DOUBLE)
+            m_columnType.push_back( FLOATING_POINT );
+          else
+            m_columnType.push_back( STRING );
+        }
         else
-          m_columnType.push_back( STRING );
-      }
-      else
-      {
-        std::stringstream col;
-        col << (i+1);
+        {
+          std::stringstream col;
+          col << (i+1);
 
-        m_columns.push_back( col.str() );
-        m_columnType.push_back( STRING );
+          m_columns.push_back( col.str() );
+          m_columnType.push_back( STRING );
+        }
       }
     }
-    
+
     if (!checkAbort())
       postEvent( QUERY_COLUMNS );
   }
@@ -199,31 +211,40 @@ int QueryThread::run()
 
 	if(mysql_errno(sql))
 	{
-    MutexLocker lock(m_resultInfo);
-    m_error = true;
-    m_errorText = mysql_error(sql);
+    {
+      MutexLocker lock(m_resultInfo);
+      m_error = true;
+      m_errorText = mysql_error(sql);
+    }
     if (!checkAbort())
       postEvent( QUERY_ERROR );
     else
     {
       postEvent( QUERY_ABORTED );
+
+      MutexLocker lock(m_resultInfo);
       m_abort = false;
     }
 	}
 	else
 	{
-    MutexLocker lock(m_resultInfo);
-    m_error = false;
-    m_lastInsert = mysql_insert_id(sql);
-    m_affectedRows = mysql_affected_rows(sql);
+    {
+      MutexLocker lock(m_resultInfo);
+      m_error = false;
+      m_lastInsert = mysql_insert_id(sql);
+      m_affectedRows = mysql_affected_rows(sql);
+    }
     if (!checkAbort())
       postEvent( QUERY_SUCCESS );
     else
     {
       postEvent( QUERY_ABORTED );
+
+      MutexLocker lock(m_resultInfo);
       m_abort = false;
     }
 	}
+
   m_database->unlockHandle();
 
 	mysql_free_result(pResult);

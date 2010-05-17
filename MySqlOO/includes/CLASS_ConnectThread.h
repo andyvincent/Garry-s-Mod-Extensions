@@ -27,7 +27,9 @@ public:
   bool wasSuccessful();
   std::string error();
 
+  virtual bool init();
   virtual int run();
+  virtual void exit();
 private:
   Database* m_mysql;
 
