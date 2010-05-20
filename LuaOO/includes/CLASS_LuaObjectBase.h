@@ -181,6 +181,7 @@ private:
   std::map<std::string, int> m_userTable;
 #endif
   bool m_enableGC;
+  int m_gcRefCount;
 protected:
   std::vector<ILuaObject*> m_luaObjects;
   ILuaObject* latestRef()

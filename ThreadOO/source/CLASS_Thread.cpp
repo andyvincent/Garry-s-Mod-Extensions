@@ -32,9 +32,10 @@ DWORD WINAPI Thread::threadProc(void* p)
 void msleep(unsigned int milli)
 {
   sched_yield();
+
   struct timespec timeOut,remains;
-  timeOut.tv_sec = 0;
-  timeOut.tv_nsec = 1000000000; /* 100 milliseconds */
+  timeOut.tv_sec  = (milli / 1000);
+	timeOut.tv_nsec = (milli % 1000) * 1000000;
   nanosleep(&timeOut, &remains);
 }
 

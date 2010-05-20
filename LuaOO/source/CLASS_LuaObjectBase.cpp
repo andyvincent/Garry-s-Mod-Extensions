@@ -6,6 +6,7 @@ LuaObjectBase::LuaObjectBase(const LuaClassInfo& classInfo, ILuaInterface* luaIn
   : m_luaInterface(luaInterface)
   , m_classInfo(classInfo)
   , m_enableGC(true)
+  , m_gcRefCount(0)
 {
   LuaOO::instance()->allocated(this);
 }
@@ -53,6 +54,7 @@ void LuaObjectBase::pushObject()
   if (!metaTable)
     return;
 
+  m_gcRefCount++;
   m_luaInterface->PushUserData(metaTable, this);
 
   metaTable->UnReference();
@@ -475,7 +477,8 @@ LUA_OBJECT_FUNCTION(LuaObjectBase::gcDeleteWrapper)
 	LuaObjectBase* object = getFromStack(Lua(), 1, false);
 	if (!object)
 		return 0;
-  if (!object->canDelete())
+  object->m_gcRefCount--;
+  if (object->m_gcRefCount > 0 || !object->canDelete())
   {
     object->luaUnRef();
     return 0;
