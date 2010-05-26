@@ -121,7 +121,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories=".\Includes;..\Common\Includes;&quot;C:\Program Files\MySQL\MySQL Server 5.1\include&quot;;..\LuaOO\includes;..\ThreadOO\includes"
+				AdditionalIncludeDirectories=".\Includes;..\Common\Includes;D:\Development\MySql\include;..\LuaOO\includes;..\ThreadOO\includes"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
@@ -142,7 +142,7 @@
 				AdditionalDependencies="libmysql.lib LuaOO.lib ThreadOO.lib"
 				OutputFile="$(OutDir)/gm_mysqloo.dll"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="&quot;..\LuaOO\output\$(ConfigurationName)\$(PlatformName)&quot;;&quot;..\ThreadOO\output\$(ConfigurationName)\$(PlatformName)&quot;;&quot;C:\Program Files\MySQL\MySQL Server 5.1\lib\opt&quot;"
+				AdditionalLibraryDirectories="&quot;..\LuaOO\output\$(ConfigurationName)\$(PlatformName)&quot;;&quot;..\ThreadOO\output\$(ConfigurationName)\$(PlatformName)&quot;;D:\Development\MySql\lib"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				OptimizeReferences="2"
