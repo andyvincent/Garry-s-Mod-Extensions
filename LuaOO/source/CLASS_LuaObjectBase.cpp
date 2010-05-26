@@ -7,6 +7,7 @@ LuaObjectBase::LuaObjectBase(const LuaClassInfo& classInfo, ILuaInterface* luaIn
   , m_classInfo(classInfo)
   , m_enableGC(true)
   , m_gcRefCount(0)
+  , m_markedForDeletion(false)
 {
   LuaOO::instance()->allocated(this);
 }
@@ -14,6 +15,19 @@ LuaObjectBase::LuaObjectBase(const LuaClassInfo& classInfo, ILuaInterface* luaIn
 LuaObjectBase::~LuaObjectBase()
 {
   LuaOO::instance()->released(this);
+}
+
+bool LuaObjectBase::deleteIfReady()
+{
+  if (!m_markedForDeletion)
+    return false;
+  delete this;
+  return true;
+}
+
+void LuaObjectBase::markForDeletion()
+{
+  m_markedForDeletion = true;
 }
 
 int LuaObjectBase::toString()
@@ -181,6 +195,13 @@ bool LuaObjectBase::checkValidity(ILuaInterface* luaInterface, int type, LuaObje
 		return false;
 	}
 
+  if (object->m_markedForDeletion)
+  {
+		if (error)
+			luaInterface->LuaError("Invalid object! (about to be deleted)\n");
+		return false;
+  }
+
 	return true;
 }
 
@@ -221,6 +242,9 @@ bool LuaObjectBase::checkArgument(int stackPosition, int expectedType)
 
 void LuaObjectBase::runCallback(const char* functionName, const char* sig, ...)
 {
+  if (m_markedForDeletion)
+    return;
+
 #ifdef FULL_USER_DATA
   // Find the callback function.
   std::map<std::string,int>::iterator index = m_userTable.find( std::string(functionName) );
@@ -468,7 +492,7 @@ LUA_OBJECT_FUNCTION(LuaObjectBase::deleteWrapper)
 	if (!object)
 		return 0;
   object->luaUnRef();
-  delete object;
+  object->markForDeletion();
 	return 0;
 }
 
@@ -484,7 +508,7 @@ LUA_OBJECT_FUNCTION(LuaObjectBase::gcDeleteWrapper)
     return 0;
   }
   object->luaUnRef();
-  delete object;
+  object->markForDeletion();
 	return 0;
 }
 

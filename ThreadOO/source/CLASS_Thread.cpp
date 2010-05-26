@@ -148,6 +148,7 @@ void Thread::done()
   m_thread = 0;
   m_threadID = 0;
 #elif LINUX
+  pthread_detach(m_thread);
   m_thread = 0;
 #else
 #error Unhandled Platform!

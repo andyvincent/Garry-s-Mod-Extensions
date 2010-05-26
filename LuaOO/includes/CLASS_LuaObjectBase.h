@@ -29,6 +29,19 @@ public:
   virtual ~LuaObjectBase(void);
 
   /*!
+    \brief Mark an object for deletion. It will be removed on the next frame.
+           All attempts to acces it via Lua will be denied since it will be
+           marked as invalid.
+  */
+  void markForDeletion();
+
+  /*!
+    \brief Check if an object is ready for deletion.
+    \return Returns true if the object was deleted.
+  */
+  bool deleteIfReady();
+
+  /*!
     \brief Override this if necessary, for the IsValid binding.
     \param error If true output an error message if object is invalid.
   */
@@ -182,6 +195,7 @@ private:
 #endif
   bool m_enableGC;
   int m_gcRefCount;
+  bool m_markedForDeletion;
 protected:
   std::vector<ILuaObject*> m_luaObjects;
   ILuaObject* latestRef()

@@ -149,6 +149,9 @@ LUA_OBJECT_FUNCTION(LuaOO::pollingFunction)
       it != copy.end();
       ++it)
   {
+    if ((*it)->deleteIfReady())
+      continue;
+
     (*it)->poll();
   }
   return 0;

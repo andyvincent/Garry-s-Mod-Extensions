@@ -4,7 +4,7 @@
 #include "CLASS_Database.h"
 #include "CLASS_Query.h"
 
-#define VERSION 6
+#define VERSION 7
 
 LUA_FUNCTION(DatabaseConnect)
 {
@@ -77,6 +77,11 @@ LUA_FUNCTION(DatabaseConnect)
 GMOD_FUNCTION(Init)
 {
   ILuaInterface* gLua = Lua();
+  if (mysql_library_init(0,NULL,NULL))
+  {
+    gLua->Msg("Error: Couldn't initilise mysql library!");
+    return 0;
+  }
 
   LuaOO::instance()->registerPollingFunction(gLua, "MySqlOO::Poll");
   LuaOO::instance()->registerClasses(gLua);
@@ -114,6 +119,8 @@ GMOD_FUNCTION(Init)
 GMOD_FUNCTION(Shutdown)
 {
   LuaOO::shutdown();
+
+  mysql_library_end();
   return 0;
 }
 
